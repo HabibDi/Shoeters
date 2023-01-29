@@ -30,52 +30,49 @@ module.exports = function userRouter(app, db) {
 
     })
 
-    app.get('/login', async (req, res) => {
+    app.post('/login', async (req, res) => {
+
+        try {
+
+            const email = req.body.email
+            const password = req.body.password
 
 
+            if (email === undefined) {
+                res.send("L'adresse email ne peut pas être vide")
+            } else if (password === undefined) {
+                res.send("Le mot de passe ne peut pas être vide")
+            } else {
+                const userToCheck = await db.query(`SELECT * FROM users WHERE email = "${email}"`)
+                let user = userToCheck[0]
 
-        const email = req.body.email
-        const password = req.body.password
+                if (userToCheck.length < 1) {
+                    res.send("Adresse email incorrecte")
+                } else {
 
+                    bcrypt.compare(password, user.password, (err, result) => {
+                        if (err) {
+                            console.log(err)
+                            res.status(401).json({ message: "Mot de passe incorrect" })
+                        } else if (result) {
 
-        if (email === undefined) {
-            return res.sendStatus(401)({
-                message: "L'adresse email ne peut pas être vide"
-            })
-        } else if (password === undefined) {
-            return res.sendStatus(401)({
-                message: "Le mot de passe ne peut pas être vide"
-            })
-        } else {
+                            jwt.sign({ id: user.user_id }, "ThereShouldBeABetterWayToHideThat", { expiresIn: 36000 }, (err, token) => {
 
-            const userToCheck = await db.query(`SELECT email, password FROM users WHERE email = "${email}"`)
+                                if (err) console.log(err)
+                                else res.send({
+                                    token: token
+                                })
+                            });
 
-            bcrypt.hash(password, 10, (err, hash) => {
-                if (err) {
-                    return res.status(500).json({
-                        error: err
+                        } else {
+                            res.json("Mot de passe incorrect");
+                        }
                     })
                 }
-
-                else {
-                    db.query('INSERT INTO users (email, password) VALUES (?, ?)', [email, hash])
-                }
-
-            })
-            res.send(userToCheck)
-
+            }
+        } catch (error) {
+            console.log(error)
         }
-
 
     })
 }
-
-
-
-// app.put("/categories/:id", async (req, res) => {
-//     const name = req.body.name
-//     const id = req.params.id
-//     const responseDB = await db.query('UPDATE categories SET name = (?) WHERE id = (?)', [name, id])
-//     res.send(responseDB)
-// })
-

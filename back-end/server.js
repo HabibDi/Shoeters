@@ -2,12 +2,14 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const mysql = require('promise-mysql')
+const cors = require('cors')
 
 const userRoutes = require('./routes/userRouter')
 const productRoutes = require('./routes/productRouter')
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(cors())
 
 const port = process.env.PORT
 
