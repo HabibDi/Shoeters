@@ -33,10 +33,8 @@ module.exports = function userRouter(app, db) {
     app.post('/login', async (req, res) => {
 
         try {
-
             const email = req.body.email
             const password = req.body.password
-
 
             if (email === undefined) {
                 res.send("L'adresse email ne peut pas être vide")
@@ -49,7 +47,6 @@ module.exports = function userRouter(app, db) {
                 if (userToCheck.length < 1) {
                     res.send("Adresse email incorrecte")
                 } else {
-
                     bcrypt.compare(password, user.password, (err, result) => {
                         if (err) {
                             console.log(err)
